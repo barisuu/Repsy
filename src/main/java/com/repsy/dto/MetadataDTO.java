@@ -50,5 +50,7 @@ public class MetadataDTO {
     public void setDependencies(List<DependencyDTO> dependencies) {
         this.dependencies = dependencies;
     }
+
+
 }
 

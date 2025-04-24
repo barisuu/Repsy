@@ -1,31 +1,26 @@
 package com.repsy.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.repsy.domain.Package;
 import com.repsy.dto.MetadataDTO;
 import com.repsy.repository.PackageRepository;
 import com.repsy.storage.StorageLibrary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
 
 
 @Service
 public class PackageServiceImpl implements PackageService {
+
     private final PackageRepository packageRepository;
-    private final Validator validator;
-    private final ObjectMapper objectMapper;
     StorageLibrary storageLibrary;
     private final String storageStrategy;
 
-    public PackageServiceImpl(PackageRepository packageRepository, Validator validator,
-                             ObjectMapper objectMapper, StorageLibrary storageLibrary,
+    public PackageServiceImpl(PackageRepository packageRepository, StorageLibrary storageLibrary,
                              @Value("${storage.strategy}") String storageStrategy) {
 
         if(!storageStrategy.equals("object-storage") && !storageStrategy.equals("file-system")){
@@ -33,48 +28,37 @@ public class PackageServiceImpl implements PackageService {
         }
 
         this.packageRepository = packageRepository;
-        this.validator = validator;
-        this.objectMapper = objectMapper;
         this.storageLibrary=storageLibrary;
         this.storageStrategy= storageStrategy;
     }
 
     @Override
-    public String uploadPackage(String packageName, String version, MultipartFile file, String metadataJson) throws JsonProcessingException {
-        MetadataDTO metadata = objectMapper.readValue(metadataJson, MetadataDTO.class);
-        BindingResult bindingResult = new BeanPropertyBindingResult(metadata,"metadata");
-        validator.validate(metadata,bindingResult);
+    public String uploadPackage(MultipartFile file, MetadataDTO metadata) throws FileAlreadyExistsException {
 
-        if(bindingResult.hasErrors()){
-            StringBuilder errors = new StringBuilder("Validation failed: ");
-            bindingResult.getAllErrors().forEach(error ->
-                    errors.append(error.getDefaultMessage()).append(", "));
-            throw new IllegalArgumentException(errors.toString());
+        if(packageRepository.existsPackageByPackageNameAndVersion(metadata.name,metadata.version)){
+            throw new FileAlreadyExistsException("Package already exists.");
         }
-        if(packageRepository.existsPackageByPackageNameAndVersion(packageName,version)){
-            throw new IllegalArgumentException("Package already exists.");
+        try{
+            Package newPackage = new Package();
+            newPackage.setPackageName(metadata.name);
+            newPackage.setVersion(metadata.version);
+            newPackage.setAuthor(metadata.author);
+            newPackage.setStorageStrategy(storageStrategy);
+            String storageLibraryResponse = storageLibrary.write(file,metadata);
+            packageRepository.save(newPackage);
+            return (storageLibraryResponse + "\nPackage uploaded successfully");
+        }catch (Exception e){
+            return("Error encountered during storage. " + e.getMessage());
         }
 
-        com.repsy.domain.Package newPackage = new Package();
-        newPackage.setPackageName(packageName);
-        newPackage.setVersion(version);
-        newPackage.setAuthor(metadata.getAuthor());
-        newPackage.setStorageStrategy(storageStrategy);
-
-        String storageLibraryResponse = storageLibrary.write(file,metadataJson);
-        packageRepository.save(newPackage);
-
-
-        return (storageLibraryResponse + "\nPackage uploaded successfully");
     }
 
     @Override
-    public String downloadPackage(String packageName, String version) throws FileNotFoundException{
-        String storageLibraryResponse = storageLibrary.read(packageName,version);
+    public InputStream downloadPackage(String packageName, String version, String fileName) throws Exception{
         Package foundPackage = packageRepository.findPackageByPackageNameAndVersion(packageName,version);
         if (foundPackage==null){
             throw new FileNotFoundException("Requested package is not found");
         }
-        return (storageLibraryResponse + "\n" + foundPackage);
+        return storageLibrary.read(packageName,version, fileName);
     }
 }

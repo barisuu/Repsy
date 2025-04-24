@@ -3,24 +3,26 @@ package com.repsy.domain;
 
 import jakarta.persistence.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(indexes = {
         @Index(name="pck_version",columnList = "packageName, version", unique = true)
 })
 public class Package {
     @Id
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String packageName;
     private String version;
     private String author;
     private String storageStrategy;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

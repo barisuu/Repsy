@@ -1,10 +1,10 @@
 package com.repsy.service;
 
+import com.repsy.dto.MetadataDTO;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public interface PackageService {
-    String uploadPackage(String packageName, String version, MultipartFile file, String metadataJson) throws Exception;
-    String downloadPackage(String packageName, String version) throws FileNotFoundException;
+    String uploadPackage(MultipartFile file, MetadataDTO metadata) throws Exception;
+    InputStream downloadPackage(String packageName, String version, String fileName) throws Exception;
 }
