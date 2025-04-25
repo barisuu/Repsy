@@ -48,7 +48,7 @@ public class PackageServiceImpl implements PackageService {
             packageRepository.save(newPackage);
             return (storageLibraryResponse + "\nPackage uploaded successfully");
         }catch (Exception e){
-            return("Error encountered during storage. " + e.getMessage());
+            throw new RuntimeException("Error encountered during storage.", e);
         }
 
     }

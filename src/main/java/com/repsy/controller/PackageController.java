@@ -42,19 +42,18 @@ public class PackageController {
     public ResponseEntity<String> uploadPackage(@PathVariable String packageName,
                                                 @PathVariable String version,
                                                 @RequestPart("file") MultipartFile file,
-                                                @RequestPart("meta") MultipartFile metadataJson) {
+                                                @RequestPart("meta") MultipartFile metadataJson) throws Exception {
 
-        //TODO: Add validation between URL variables and metadata
         if (file.isEmpty() || metadataJson.isEmpty()) {
             throw new FileValidationException("File(s) must not be empty.");
         }
-        if(file.getOriginalFilename()==null){
+        if (file.getOriginalFilename() == null) {
             throw new FileValidationException("Invalid filename.");
         }
         if (!file.getOriginalFilename().endsWith(".rep")) {
             throw new FileValidationException("File must be a .rep type.");
         }
-        if(!file.getOriginalFilename().equals(packageName+".rep")){
+        if (!file.getOriginalFilename().equals(packageName + ".rep")) {
             throw new FileValidationException("File name must be the same as path variable.");
         }
 
@@ -76,16 +75,12 @@ public class PackageController {
             throw new InvalidMetadataException(errorMessage.toString());
         }
 
-        if(!metadata.name.equals(packageName) || !metadata.version.equals(version)){
+        if (!metadata.name.equals(packageName) || !metadata.version.equals(version)) {
             throw new InvalidMetadataException("Parameters don't match metadata.");
         }
 
-        try {
-            String response = packageService.uploadPackage(file, metadata);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        String response = packageService.uploadPackage(file, metadata);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{packageName}/{version}/{fileName}")

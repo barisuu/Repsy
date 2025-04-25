@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>com</groupId>
     <artifactId>Repsy</artifactId>
@@ -31,15 +31,11 @@
     </properties>
 
     <repositories>
-        <!-- ... some other repository definitions -->
-
         <repository>
             <id>repsy</id>
             <name>Repsy Storage Libs</name>
             <url>https://repo.repsy.io/mvn/barisu/storage</url>
         </repository>
-
-        <!-- ... some other repository definitions -->
     </repositories>
 
     <dependencies>
