@@ -4,6 +4,8 @@ package com.repsy.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 
+import com.repsy.exceptions.FileValidationException;
+import com.repsy.exceptions.InvalidMetadataException;
 import com.repsy.service.PackageService;
 import com.repsy.storage.MetadataDTO;
 import org.springframework.core.io.InputStreamResource;
@@ -44,13 +46,16 @@ public class PackageController {
 
         //TODO: Add validation between URL variables and metadata
         if (file.isEmpty() || metadataJson.isEmpty()) {
-            return ResponseEntity.badRequest().body("File(s) must not be empty.");
+            throw new FileValidationException("File(s) must not be empty.");
         }
         if(file.getOriginalFilename()==null){
-            return ResponseEntity.badRequest().body("Invalid filename.");
+            throw new FileValidationException("Invalid filename.");
         }
         if (!file.getOriginalFilename().endsWith(".rep")) {
-            return ResponseEntity.badRequest().body("File must be a .rep type.");
+            throw new FileValidationException("File must be a .rep type.");
+        }
+        if(!file.getOriginalFilename().equals(packageName+".rep")){
+            throw new FileValidationException("File name must be the same as path variable.");
         }
 
 
@@ -58,7 +63,7 @@ public class PackageController {
         try {
             metadata = objectMapper.readValue(metadataJson.getBytes(), MetadataDTO.class);
         } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Invalid JSON format.");
+            throw new InvalidMetadataException("Invalid JSON format.");
         }
 
         BindingResult bindingResult = new BeanPropertyBindingResult(metadata, "metadata");
@@ -68,11 +73,11 @@ public class PackageController {
             bindingResult.getAllErrors().forEach(error ->
                     errorMessage.append(error.getDefaultMessage()).append(", ")
             );
-            return ResponseEntity.badRequest().body(errorMessage.toString());
+            throw new InvalidMetadataException(errorMessage.toString());
         }
 
-        if(metadata.name!=packageName || metadata.version!=version){
-            return ResponseEntity.badRequest().body("Parameters don't match metadata.");
+        if(!metadata.name.equals(packageName) || !metadata.version.equals(version)){
+            throw new InvalidMetadataException("Parameters don't match metadata.");
         }
 
         try {
