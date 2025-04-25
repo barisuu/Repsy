@@ -1,8 +1,8 @@
 package com.repsy.service;
 
 import com.repsy.domain.Package;
-import com.repsy.dto.MetadataDTO;
 import com.repsy.repository.PackageRepository;
+import com.repsy.storage.MetadataDTO;
 import com.repsy.storage.StorageLibrary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

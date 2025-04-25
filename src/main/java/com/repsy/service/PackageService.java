@@ -1,6 +1,6 @@
 package com.repsy.service;
 
-import com.repsy.dto.MetadataDTO;
+import com.repsy.storage.MetadataDTO;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 

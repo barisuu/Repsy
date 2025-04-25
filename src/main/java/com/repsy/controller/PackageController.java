@@ -3,8 +3,9 @@ package com.repsy.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
-import com.repsy.dto.MetadataDTO;
+
 import com.repsy.service.PackageService;
+import com.repsy.storage.MetadataDTO;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,9 +46,13 @@ public class PackageController {
         if (file.isEmpty() || metadataJson.isEmpty()) {
             return ResponseEntity.badRequest().body("File(s) must not be empty.");
         }
+        if(file.getOriginalFilename()==null){
+            return ResponseEntity.badRequest().body("Invalid filename.");
+        }
         if (!file.getOriginalFilename().endsWith(".rep")) {
             return ResponseEntity.badRequest().body("File must be a .rep type.");
         }
+
 
         MetadataDTO metadata;
         try {
@@ -64,6 +69,10 @@ public class PackageController {
                     errorMessage.append(error.getDefaultMessage()).append(", ")
             );
             return ResponseEntity.badRequest().body(errorMessage.toString());
+        }
+
+        if(metadata.name!=packageName || metadata.version!=version){
+            return ResponseEntity.badRequest().body("Parameters don't match metadata.");
         }
 
         try {

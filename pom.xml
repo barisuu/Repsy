@@ -29,6 +29,19 @@
     <properties>
         <java.version>17</java.version>
     </properties>
+
+    <repositories>
+        <!-- ... some other repository definitions -->
+
+        <repository>
+            <id>repsy</id>
+            <name>Repsy Storage Libs</name>
+            <url>https://repo.repsy.io/mvn/barisu/storage</url>
+        </repository>
+
+        <!-- ... some other repository definitions -->
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -54,9 +67,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.17</version>
+            <groupId>com.Repsy</groupId>
+            <artifactId>storage-core</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 
